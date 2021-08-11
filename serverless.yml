@@ -1,0 +1,62 @@
+service: boats
+
+frameworkVersion: '2'
+
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: '20201221'
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: 
+        - arn:aws:dynamodb:us-east-1:562743633609:table/boats
+
+functions:
+  addBoat:
+    handler: src/addBoat.handler
+    events:
+      - http:
+          path: /boats
+          method: post
+  getBoats:
+    handler: src/getBoats.handler
+    events:
+      - http:
+          path: /boats
+          method: get
+  getBoat:
+    handler: src/getBoat.handler
+    events:
+      - http:
+          path: /boat/{id}
+          method: get
+  updateBoat:
+    handler: src/updateBoat.handler
+    events:
+      - http:
+          path: /boat/{id}
+          method: put
+  deleteBoat:
+    handler: src/deleteBoat.handler
+    events:
+      - http:
+          path: /boat/{id}
+          method: delete
+resources: # CloudFormation template syntax
+  Resources:
+    boatTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: boats
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
