@@ -1,7 +1,6 @@
 const AWS = require("aws-sdk");
-// const middy = require("@middy/core");
-// const validator = require("@middy/validator");
-// const getBoatsSchema = require("./lib/getBoatsSchema");
+const middy = require("@middy/core");
+const validator = require("@middy/validator");
 
 const getBoats = async (event) => {
   const db = new AWS.DynamoDB.DocumentClient();
@@ -33,18 +32,29 @@ const getBoats = async (event) => {
   };
 };
 
-// module.exports = {
-//   handler: middy(getBoats).use(
-//     validator({
-//       inputSchema: getBoatsSchema,
-//       ajvOptions: {
-//         useDefaults: true,
-//         strict: false,
-//       },
-//     })
-//   ),
-// };
+const schema = {
+  properties: {
+    queryStringParameters: {
+      type: "object",
+      properties: {
+        tags: {
+          type: "string",
+          default: "react",
+        },
+      },
+    },
+  },
+  required: ["queryStringParameters"],
+};
 
 module.exports = {
-  handler: getBoats,
+  handler: middy(getBoats).use(
+    validator({
+      inputSchema: schema,
+      ajvOptions: {
+        useDefaults: true,
+        strict: false,
+      },
+    })
+  ),
 };
