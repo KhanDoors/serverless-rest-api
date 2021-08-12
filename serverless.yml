@@ -13,6 +13,7 @@ provider:
         - dynamodb:*
       Resource: 
         - arn:aws:dynamodb:us-east-1:562743633609:table/boats
+        - !Join ['/', [ 'arn:aws:dynamodb:us-east-1:562743633609:table/boats', 'index', 'tagsByDate' ]]
 
 functions:
   addBoat:
@@ -50,13 +51,29 @@ resources: # CloudFormation template syntax
     boatTable:
       Type: AWS::DynamoDB::Table
       Properties:
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
         TableName: boats
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: tags
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+        GlobalSecondaryIndexes:
+          - IndexName: tagsByDate
+            KeySchema:
+              - AttributeName: tags
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
