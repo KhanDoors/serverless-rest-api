@@ -4,11 +4,19 @@ const validator = require("@middy/validator");
 
 const getBoats = async (event) => {
   const db = new AWS.DynamoDB.DocumentClient();
-  const { tags } = event.queryStringParameters;
+  const { tags, media_type } = event.queryStringParameters;
   let boats;
 
   const params = {
     TableName: "boats",
+    IndexName: "media_type",
+    KeyConditionExpression: "#media_type = :media_type",
+    ExpressionAttributeValues: {
+      ":media_type": media_type,
+    },
+    ExpressionAttributeNames: {
+      "#media_type": "media_type",
+    },
     IndexName: "tagsByDate",
     KeyConditionExpression: "#tags = :tags",
     ExpressionAttributeValues: {
@@ -32,7 +40,7 @@ const getBoats = async (event) => {
   };
 };
 
-const schema = {
+const boatsSchema = {
   properties: {
     queryStringParameters: {
       type: "object",
@@ -40,6 +48,11 @@ const schema = {
         tags: {
           type: "string",
           default: "react",
+        },
+        media_type: {
+          type: "string",
+          enum: ["video", "blog"],
+          default: "video",
         },
       },
     },
@@ -50,7 +63,7 @@ const schema = {
 module.exports = {
   handler: middy(getBoats).use(
     validator({
-      inputSchema: schema,
+      inputSchema: boatsSchema,
       ajvOptions: {
         useDefaults: true,
         strict: false,

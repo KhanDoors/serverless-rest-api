@@ -14,6 +14,7 @@ provider:
       Resource: 
         - arn:aws:dynamodb:us-east-1:562743633609:table/boats
         - !Join ['/', [ 'arn:aws:dynamodb:us-east-1:562743633609:table/boats', 'index', 'tagsByDate' ]]
+        - !Join ['/', [ 'arn:aws:dynamodb:us-east-1:562743633609:table/boats', 'index', 'media_type' ]]
 
 functions:
   addBoat:
@@ -62,6 +63,8 @@ resources: # CloudFormation template syntax
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
+          - AttributeName: media_type
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
@@ -69,6 +72,17 @@ resources: # CloudFormation template syntax
           - IndexName: tagsByDate
             KeySchema:
               - AttributeName: tags
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+          - IndexName: media_type
+            KeySchema:
+              - AttributeName: media_type
                 KeyType: HASH
               - AttributeName: createdAt
                 KeyType: RANGE
